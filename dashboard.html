@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YieldSense — Live Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--font-sans:system-ui,sans-serif;--text-primary:#1a1a18;--text-secondary:#444441;--text-muted:#888780;--surface-0:#f5f4f0;--surface-1:#eeece8;--surface-2:#ffffff;--border:#dddbd4;--border-strong:#b4b2a9;--radius:8px}
+body{font-family:var(--font-sans);background:#f5f4f0;color:var(--text-primary);padding:20px;max-width:900px;margin:0 auto}
+.app{padding:1rem 0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:#1D9E75;display:flex;align-items:center;justify-content:center}
+.brand-mark i{color:#fff;font-size:18px}
+.brand-name{font-size:16px;font-weight:500}
+.brand-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.live-pill{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;background:#E1F5EE;border:0.5px solid #5DCAA5;color:#085041}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#0F6E56;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.clock{font-size:12px;color:var(--text-muted)}
+.rapids-chip{font-size:11px;padding:3px 9px;border-radius:20px;background:#E6F1FB;border:0.5px solid #85B7EB;color:#0C447C;display:flex;align-items:center;gap:4px}
+.divider-label{font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;margin-top:1.25rem;display:flex;align-items:center;gap:8px}
+.divider-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.owner-hero{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:#fff;border-radius:12px;padding:16px 20px;margin-bottom:10px}
+.hero-yield{display:flex;flex-direction:column;align-items:center;padding-right:16px;border-right:0.5px solid var(--border)}
+.hero-num{font-size:52px;font-weight:500;line-height:1;transition:color .5s}
+.hero-label{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:center}
+.hero-right{display:flex;flex-direction:column;gap:10px;padding-left:4px}
+.status-banner{border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.banner-title{font-size:13px;font-weight:500}
+.banner-body{font-size:12px;margin-top:2px;line-height:1.4}
+.hero-kpis{display:flex;gap:10px}
+.hkpi{flex:1;background:var(--surface-0);border-radius:8px;padding:8px 10px}
+.hkpi-val{font-size:18px;font-weight:500}
+.hkpi-label{font-size:10px;color:var(--text-muted);margin-top:2px}
+.trend-wrap{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px}
+.trend-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.trend-title{font-size:13px;font-weight:500}
+.cpu-note{font-size:10px;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border);display:flex;align-items:center;gap:6px}
+.lines-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.line-card{background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .15s}
+.line-card.flagged{border-color:#E24B4A;background:#FCEBEB}
+.line-card.warn{border-color:#BA7517;background:#FAEEDA}
+.lc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.lc-name{font-size:13px;font-weight:500}
+.lc-name.flagged{color:#501313}
+.lc-name.warn{color:#412402}
+.lc-badge{font-size:10px;padding:2px 7px;border-radius:10px}
+.badge-ok{background:#EAF3DE;color:#173404}
+.badge-warn{background:#FAEEDA;color:#412402}
+.badge-crit{background:#FCEBEB;color:#501313}
+.lc-yield{font-size:22px;font-weight:500;margin-bottom:6px}
+.lc-bar-wrap{height:5px;background:var(--surface-0);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.lc-bar{height:100%;border-radius:3px;transition:width .6s,background .6s}
+.lc-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)}
+.lc-spark{display:flex;align-items:flex-end;gap:2px;height:20px;margin-top:6px}
+.sp-bar{width:8px;border-radius:1px 1px 0 0;transition:height .3s,background .3s}
+.alert-box{background:#FCEBEB;border:0.5px solid #F09595;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+.alert-title{font-size:13px;font-weight:500;color:#501313}
+.alert-body{font-size:12px;color:#791F1F;margin-top:3px;line-height:1.5}
+.rec-box{background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+.rec-title{font-size:13px;font-weight:500;color:#085041}
+.rec-body{font-size:12px;color:#0F6E56;margin-top:3px;line-height:1.5}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.dkpi{background:#fff;border-radius:8px;padding:10px 12px}
+.dkpi-val{font-size:18px;font-weight:500}
+.dkpi-label{font-size:10px;color:var(--text-muted);margin-top:2px}
+.sim-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:1rem}
+.sim-label{font-size:12px;color:var(--text-secondary);flex-shrink:0}
+.sim-btn{padding:6px 12px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:none;font-size:12px;cursor:pointer}
+.sim-btn.on{background:#E24B4A;border-color:#E24B4A;color:#fff}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"><i class="ti ti-chart-line"></i></div>
+      <div><div class="brand-name">YieldSense</div><div class="brand-sub">Live yield intelligence · Apex Manufacturing · Plant 1</div></div>
+    </div>
+    <div class="topbar-right">
+      <div class="rapids-chip"><i class="ti ti-bolt"></i>cuDF cycle: <span id="cycle-time">8.3s</span></div>
+      <div class="live-pill"><div class="live-dot"></div>Live</div>
+      <div class="clock" id="clock">—</div>
+    </div>
+  </div>
+  <div class="divider-label">Owner view — plant level</div>
+  <div class="owner-hero">
+    <div class="hero-yield">
+      <div class="hero-num" id="plant-yield">—%</div>
+      <div class="hero-label">Plant yield now</div>
+    </div>
+    <div class="hero-right">
+      <div class="status-banner" id="status-banner">
+        <i class="ti ti-circle-check" id="banner-icon" style="font-size:18px"></i>
+        <div><div class="banner-title" id="banner-title">Calculating…</div><div class="banner-body" id="banner-body">Awaiting first data cycle.</div></div>
+      </div>
+      <div class="hero-kpis">
+        <div class="hkpi"><div class="hkpi-val" id="kpi-output">—</div><div class="hkpi-label">Units out (today)</div></div>
+        <div class="hkpi"><div class="hkpi-val" id="kpi-target">—</div><div class="hkpi-label">Target</div></div>
+        <div class="hkpi"><div class="hkpi-val" id="kpi-rejects">—</div><div class="hkpi-label">Rejects today</div></div>
+        <div class="hkpi"><div class="hkpi-val" id="kpi-loss" style="color:#E24B4A">—</div><div class="hkpi-label">Revenue at risk</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="trend-wrap">
+    <div class="trend-head"><div class="trend-title">Yield trend — last 20 cycles</div><div style="font-size:11px;color:var(--text-muted)">Updating every 4s</div></div>
+    <div style="display:flex;align-items:flex-end;gap:3px;height:64px" id="trend-chart"></div>
+    <div class="cpu-note"><i class="ti ti-bolt" style="color:#1D9E75"></i>Each data point = one cuDF processing cycle — 9.1s on GPU vs 4m 12s on CPU</div>
+  </div>
+  <div class="divider-label">Supervisor view — line breakdown</div>
+  <div id="alert-zone"></div>
+  <div id="rec-zone"></div>
+  <div class="lines-grid" id="lines-grid"></div>
+  <div class="detail-grid">
+    <div class="dkpi"><div class="dkpi-val" id="d-worst-line">—</div><div class="dkpi-label">Lowest yield line</div></div>
+    <div class="dkpi"><div class="dkpi-val" id="d-reject-rate">—</div><div class="dkpi-label">Plant reject rate</div></div>
+    <div class="dkpi"><div class="dkpi-val" id="d-cycles">0</div><div class="dkpi-label">Data cycles processed</div></div>
+  </div>
+  <div class="sim-row">
+    <span class="sim-label">Simulate drift on Line 3:</span>
+    <button class="sim-btn" id="drift-btn" onclick="toggleDrift()">Inject fault</button>
+    <span style="font-size:11px;color:var(--text-muted)" id="drift-note">Watch the owner view react within one cycle</span>
+  </div>
+</div>
+<script>
+const LINES=[{id:'L1',name:'Line 1 — Bracket sub-assembly',target:420,base:94},{id:'L2',name:'Line 2 — Shaft turning',target:380,base:91},{id:'L3',name:'Line 3 — Gear hobbing',target:360,base:88},{id:'L4',name:'Line 4 — Housing bore',target:400,base:93},{id:'L5',name:'Line 5 — Cam grinding',target:340,base:90},{id:'L6',name:'Line 6 — Final assembly',target:460,base:92}];
+let state={yields:LINES.map(l=>l.base),outputs:LINES.map(l=>Math.round(l.target*l.base/100*0.4)),sparks:LINES.map(()=>[]),trendHistory:[],cycles:0,driftOn:false,driftLine:2};
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rand(a,b){return a+Math.random()*(b-a)}
+function tick(){
+  state.cycles++;
+  state.yields=state.yields.map((y,i)=>{let n=rand(-1.2,1.2);if(state.driftOn&&i===state.driftLine)n=rand(-4,-1.5);return clamp(y+n,55,99)});
+  state.outputs=state.outputs.map((o,i)=>o+Math.round(LINES[i].target/180*(state.yields[i]/100)));
+  state.sparks=state.sparks.map((s,i)=>[...s,Math.round(state.yields[i])].slice(-10));
+  const py=Math.round(state.yields.reduce((a,b)=>a+b,0)/state.yields.length);
+  state.trendHistory.push(py);if(state.trendHistory.length>20)state.trendHistory.shift();
+  render(py);document.getElementById('d-cycles').textContent=state.cycles;
+  document.getElementById('cycle-time').textContent=(7.8+Math.random()*1.2).toFixed(1)+'s';
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function render(py){
+  const el=document.getElementById('plant-yield');
+  el.textContent=py+'%';el.style.color=py>=88?'#0F6E56':py>=78?'#BA7517':'#A32D2D';
+  const totalOut=state.outputs.reduce((a,b)=>a+b,0);
+  const totalTarget=LINES.reduce((a,l)=>a+Math.round(l.target*0.4),0);
+  const rejects=Math.round(totalOut*(1-py/100)*0.6);
+  const loss=Math.round((100-py)/100*totalTarget*420);
+  document.getElementById('kpi-output').textContent=totalOut.toLocaleString();
+  document.getElementById('kpi-target').textContent=totalTarget.toLocaleString();
+  document.getElementById('kpi-rejects').textContent=rejects.toLocaleString();
+  document.getElementById('kpi-loss').textContent='₹'+(loss/1000).toFixed(0)+'K';
+  const banner=document.getElementById('status-banner');
+  const icon=document.getElementById('banner-icon');
+  const title=document.getElementById('banner-title');
+  const body=document.getElementById('banner-body');
+  if(py>=88){banner.style.cssText='border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;background:#E1F5EE;border:0.5px solid #9FE1CB';icon.style.color='#0F6E56';title.style.color='#085041';title.textContent='On track';body.style.color='#0F6E56';body.textContent='Plant yield is healthy. All lines within acceptable range.'}
+  else if(py>=78){banner.style.cssText='border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;background:#FAEEDA;border:0.5px solid #FAC775';icon.style.color='#BA7517';title.style.color='#633806';title.textContent='Yield drifting — action needed';body.style.color='#854F0B';body.textContent='A line is pulling the plant average down. Check supervisor view.'}
+  else{banner.style.cssText='border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;background:#FCEBEB;border:0.5px solid #F09595';icon.style.color='#A32D2D';title.style.color='#501313';title.textContent='Critical yield drop — intervene now';body.style.color='#791F1F';body.textContent='Plant yield below 78%. Revenue impact real-time. Check supervisor alerts.'}
+  document.getElementById('trend-chart').innerHTML=state.trendHistory.map((v,i)=>{const h=Math.round(((v-60)/40)*60)+4;const col=v>=88?'#1D9E75':v>=78?'#BA7517':'#E24B4A';const op=0.4+(i/state.trendHistory.length)*0.6;return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:100%;height:${h}px;background:${col};border-radius:2px 2px 0 0;opacity:${op}"></div></div>`}).join('');
+  document.getElementById('lines-grid').innerHTML=LINES.map((l,i)=>{const y=Math.round(state.yields[i]);const isCrit=y<78;const isWarn=y>=78&&y<85;const bc=isCrit?'badge-crit':isWarn?'badge-warn':'badge-ok';const bt=isCrit?'Critical':isWarn?'Drifting':'Normal';const cc=isCrit?'line-card flagged':isWarn?'line-card warn':'line-card';const nc=isCrit?'lc-name flagged':isWarn?'lc-name warn':'lc-name';const bc2=isCrit?'#E24B4A':isWarn?'#BA7517':'#1D9E75';const sp=state.sparks[i];const sm=Math.max(...sp,70);const sn=Math.min(...sp,100);return`<div class="${cc}"><div class="lc-head"><div class="${nc}">${l.name.split('—')[0].trim()}</div><span class="lc-badge ${bc}">${bt}</span></div><div class="lc-yield" style="color:${bc2}">${y}%</div><div class="lc-bar-wrap"><div class="lc-bar" style="width:${y}%;background:${bc2}"></div></div><div class="lc-meta"><span>${state.outputs[i].toLocaleString()} units</span><span>Target: ${l.target}</span></div><div class="lc-spark">${sp.map((v,si)=>{const h=Math.max(3,Math.round(((v-sn)/(sm-sn+1))*18));return`<div class="sp-bar" style="height:${h}px;background:${si===sp.length-1?bc2:'#B4B2A9'};flex:1"></div>`}).join('')}</div></div>`}).join('');
+  const wi=state.yields.indexOf(Math.min(...state.yields));
+  document.getElementById('d-worst-line').textContent='Line '+(wi+1);
+  document.getElementById('d-reject-rate').textContent=(100-py).toFixed(1)+'%';
+  const alertZone=document.getElementById('alert-zone');const recZone=document.getElementById('rec-zone');
+  const critLines=state.yields.map((y,i)=>({y,i})).filter(x=>x.y<78);
+  if(critLines.length>0){const w=critLines.sort((a,b)=>a.y-b.y)[0];const l=LINES[w.i];alertZone.innerHTML=`<div class="alert-box"><i class="ti ti-alert-circle" style="color:#A32D2D;font-size:17px;margin-top:1px;flex-shrink:0"></i><div><div class="alert-title">${l.name.split('—')[0].trim()} — yield at ${Math.round(w.y)}%</div><div class="alert-body">Reject rate ${(100-w.y).toFixed(1)}%. Loss est. ₹${Math.round((100-w.y)/100*l.target*420/1000)}K/hr. Supervisor intervention required.</div></div></div>`;recZone.innerHTML=`<div class="rec-box"><i class="ti ti-bulb" style="color:#0F6E56;font-size:17px;margin-top:1px;flex-shrink:0"></i><div><div class="rec-title">Recommended action — ${l.name.split('—')[0].trim()}</div><div class="rec-body">Check tooling wear on station 3. Cycle time deviation +12% suggests feed rate issue. Reduce spindle speed 8% and re-inspect first-off part.</div></div></div>`}
+  else if(state.yields.some(y=>y>=78&&y<85)){alertZone.innerHTML=`<div style="background:#FAEEDA;border:0.5px solid #FAC775;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;gap:10px"><i class="ti ti-alert-triangle" style="color:#854F0B;font-size:17px;margin-top:1px"></i><div><div style="font-size:13px;font-weight:500;color:#633806">One or more lines drifting</div><div style="font-size:12px;color:#854F0B;margin-top:3px">Monitor closely. Trend is downward over last 3 cycles.</div></div></div>`;recZone.innerHTML=''}
+  else{alertZone.innerHTML='';recZone.innerHTML=''}
+}
+function toggleDrift(){state.driftOn=!state.driftOn;const btn=document.getElementById('drift-btn');btn.textContent=state.driftOn?'Remove fault':'Inject fault';btn.classList.toggle('on',state.driftOn);document.getElementById('drift-note').textContent=state.driftOn?'Line 3 yield dropping — watch the owner banner and alerts':'Fault removed — yield recovering'}
+tick();setInterval(tick,4000);
+</script>
+</body>
+</html>

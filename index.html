@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YieldSense — Live Yield Intelligence</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0a0f1a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+.hero{text-align:center;max-width:600px;margin-bottom:48px}
+.logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px}
+.logo-mark{width:48px;height:48px;border-radius:14px;background:#1D9E75;display:flex;align-items:center;justify-content:center}
+.logo-mark i{color:#fff;font-size:24px}
+.logo-name{font-size:28px;font-weight:600}
+.tagline{font-size:16px;color:#94a3b8;line-height:1.6;margin-bottom:8px}
+.sub{font-size:13px;color:#64748b}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:620px;margin-bottom:32px}
+.card{background:#111827;border:0.5px solid #1e293b;border-radius:16px;padding:24px;cursor:pointer;text-decoration:none;color:#fff;transition:border-color .2s,transform .2s}
+.card:hover{border-color:#1D9E75;transform:translateY(-2px)}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card-title{font-size:15px;font-weight:500;margin-bottom:6px}
+.card-desc{font-size:12px;color:#64748b;line-height:1.5}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;margin-top:10px}
+.stack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:600px}
+.tag{font-size:11px;padding:4px 10px;border-radius:20px;background:#111827;border:0.5px solid #1e293b;color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="logo">
+    <div class="logo-mark"><i class="ti ti-chart-line"></i></div>
+    <div class="logo-name">YieldSense</div>
+  </div>
+  <div class="tagline">Live yield intelligence for discrete manufacturing.<br>Every manufacturer knows their yield <em>yesterday</em>. YieldSense tells them <strong>right now</strong>.</div>
+  <div class="sub">Gen AI Academy APAC Edition · NVIDIA + Google Cloud</div>
+</div>
+<div class="cards">
+  <a class="card" href="dashboard.html">
+    <div class="card-icon" style="background:#0d3b2e"><i class="ti ti-chart-line" style="color:#1D9E75;font-size:20px"></i></div>
+    <div class="card-title">Live Dashboard</div>
+    <div class="card-desc">Plant yield updating every 4 seconds. Owner view + supervisor line breakdown. Inject a fault and watch the system respond.</div>
+    <div class="badge" style="background:#0d3b2e;color:#1D9E75">Open dashboard →</div>
+  </a>
+  <a class="card" href="gemini_agent.html">
+    <div class="card-icon" style="background:#1a1640"><i class="ti ti-sparkles" style="color:#534AB7;font-size:20px"></i></div>
+    <div class="card-title">Gemini Root Cause Agent</div>
+    <div class="card-desc">Live AI diagnosis when a line drops below threshold. 3 real fault scenarios with sensor context and corrective actions.</div>
+    <div class="badge" style="background:#1a1640;color:#534AB7">Open agent →</div>
+  </a>
+</div>
+<div class="stack">
+  <span class="tag">NVIDIA RAPIDS cuDF</span>
+  <span class="tag">Google BigQuery</span>
+  <span class="tag">Cloud Storage</span>
+  <span class="tag">Gemini Enterprise</span>
+  <span class="tag">GKE GPU nodes</span>
+  <span class="tag">Looker</span>
+</div>
+</body>
+</html>
