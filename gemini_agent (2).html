@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YieldSense — Gemini Root Cause Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--font-sans:system-ui,sans-serif;--text-primary:#1a1a18;--text-secondary:#444441;--text-muted:#888780;--surface-0:#f5f4f0;--surface-1:#eeece8;--surface-2:#ffffff;--border:#dddbd4;--border-strong:#b4b2a9;--radius:8px}
+body{font-family:var(--font-sans);background:#f5f4f0;padding:20px;max-width:860px;margin:0 auto;color:var(--text-primary)}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border)}
+.hicon{width:34px;height:34px;border-radius:9px;background:#534AB7;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hicon i{color:#fff;font-size:18px}
+.htitle{font-size:15px;font-weight:500}
+.hsub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.trigger-badge{margin-left:auto;font-size:11px;padding:4px 10px;border-radius:20px;background:#EEEDFE;border:0.5px solid #AFA9EC;color:#3C3489;white-space:nowrap}
+.scenario-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem}
+.sc-card{border:0.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;background:#fff;transition:border-color .15s,background .15s;user-select:none}
+.sc-card:hover{border-color:#AFA9EC}
+.sc-card.active{border-color:#534AB7;background:#EEEDFE}
+.sc-line{font-size:13px;font-weight:500;margin-bottom:4px}
+.sc-card.active .sc-line{color:#3C3489}
+.sc-yield{font-size:20px;font-weight:500;margin:4px 0}
+.sc-issue{font-size:11px;color:var(--text-muted);line-height:1.4}
+.sc-card.active .sc-issue{color:#534AB7}
+.context-panel{background:#fff;border-radius:12px;padding:14px;margin-bottom:1rem}
+.cp-label{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.sensor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sensor-card{background:var(--surface-0);border-radius:8px;padding:8px 10px;text-align:center}
+.sensor-val{font-size:16px;font-weight:500}
+.sensor-label{font-size:10px;color:var(--text-muted);margin-top:2px}
+.sensor-delta{font-size:10px;margin-top:2px}
+.delta-bad{color:#A32D2D}.delta-ok{color:#0F6E56}
+.gen-row{display:flex;gap:8px;margin-bottom:1rem}
+.btn-gen{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius);background:#534AB7;color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-gen:hover{background:#3C3489}
+.btn-gen:disabled{background:#AFA9EC;cursor:not-allowed}
+.btn-clear{padding:9px 14px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:none;font-size:13px;cursor:pointer;color:var(--text-secondary)}
+.out-box{background:#fff;border-radius:12px;padding:16px;min-height:120px}
+.out-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--border)}
+.out-label{font-size:12px;font-weight:500;color:#3C3489}
+.out-ts{font-size:11px;color:var(--text-muted);margin-left:auto}
+.out-body{font-size:13px;line-height:1.75;color:var(--text-primary)}
+.out-body.empty{color:var(--text-muted);font-style:italic}
+.streaming-cursor{display:inline-block;width:2px;height:14px;background:#534AB7;vertical-align:middle;animation:blink .7s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.latency-row{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border)}
+.lat-label{font-size:11px;color:var(--text-muted);min-width:90px}
+.lat-track{flex:1;height:5px;background:var(--surface-0);border-radius:3px;overflow:hidden}
+.lat-fill{height:100%;background:#534AB7;width:0;border-radius:3px;transition:width 1.4s ease}
+.lat-val{font-size:11px;font-weight:500;color:#534AB7;min-width:40px;text-align:right}
+.action-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:12px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border-strong);background:none;cursor:pointer;color:var(--text-secondary)}
+.chip:hover{background:var(--surface-1)}
+.gemini-note{font-size:10px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);display:flex;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="hicon"><i class="ti ti-sparkles"></i></div>
+  <div>
+    <div class="htitle">Gemini root cause agent</div>
+    <div class="hsub">Triggered when line yield drops below threshold — Gemini Enterprise layer</div>
+  </div>
+  <div class="trigger-badge">Auto-triggers in &lt;10s of drop</div>
+</div>
+
+<div class="scenario-row">
+  <div class="sc-card active" id="sc-0">
+    <div class="sc-line">Line 3 — Gear hobbing</div>
+    <div class="sc-yield" style="color:#A32D2D">71%</div>
+    <div class="sc-issue">Spindle load +18% above baseline · cycle time deviation +12%</div>
+  </div>
+  <div class="sc-card" id="sc-1">
+    <div class="sc-line">Line 5 — Cam grinding</div>
+    <div class="sc-yield" style="color:#BA7517">81%</div>
+    <div class="sc-issue">Reject rate creeping · coolant temperature +4°C drift</div>
+  </div>
+  <div class="sc-card" id="sc-2">
+    <div class="sc-line">Line 1 — Bracket sub-assembly</div>
+    <div class="sc-yield" style="color:#BA7517">83%</div>
+    <div class="sc-issue">Dimensional drift on station 2 · first-off check overdue</div>
+  </div>
+</div>
+
+<div class="context-panel">
+  <div class="cp-label">Live sensor context — fed to Gemini</div>
+  <div class="sensor-grid" id="sensor-grid"></div>
+</div>
+
+<div class="gen-row">
+  <button class="btn-gen" id="gen-btn"><i class="ti ti-sparkles"></i>Run root cause diagnosis</button>
+  <button class="btn-clear" id="clear-btn">Clear</button>
+</div>
+
+<div class="out-box">
+  <div class="out-header">
+    <i class="ti ti-stethoscope" style="color:#534AB7;font-size:16px"></i>
+    <span class="out-label">Gemini diagnosis</span>
+    <span class="out-ts" id="out-ts">—</span>
+  </div>
+  <div class="out-body empty" id="out-body">Select a scenario above and run diagnosis to generate a live root cause analysis.</div>
+  <div class="latency-row" id="lat-row" style="display:none">
+    <span class="lat-label">Agent response</span>
+    <div class="lat-track"><div class="lat-fill" id="lat-fill"></div></div>
+    <span class="lat-val" id="lat-val">—</span>
+  </div>
+  <div class="action-chips" id="action-chips"></div>
+</div>
+
+<script>
+var SCENARIOS = [
+  {
+    line: 'Line 3 — Gear hobbing',
+    sensors: [
+      {label:'Spindle load',val:'118%',delta:'+18% vs baseline',bad:true},
+      {label:'Cycle time',val:'4.7s',delta:'+12% deviation',bad:true},
+      {label:'Reject rate',val:'29%',delta:'+17pp this shift',bad:true},
+      {label:'Coolant temp',val:'38°C',delta:'nominal',bad:false}
+    ],
+    fallback: 'Root cause: Tooling wear on the hobbing cutter at Station 2. Spindle load at 118% of baseline combined with the +12% cycle time deviation is the classic signature of a dulling cutter — the machine is working harder and slower to cut the same geometry. The elevated vibration on the Station 2 bearing confirms this is the origin point, not a downstream issue.\n\nImmediate action: (1) Stop Line 3 and lock out Station 2. (2) Replace the hobbing cutter — do not attempt to dress it, wear pattern indicates it is past the dressing threshold. (3) Run a first-off inspection on the replacement cutter before resuming full speed. Do not restart at full feed rate — ramp up over 3 parts.\n\nRecovery timeline: If action is taken in the next 10 minutes, yield should recover to above 88% within 4 cycles (16 minutes). Each 30-minute delay adds approximately 85 additional reject parts at current reject rate and risks bearing damage at Station 2 that would extend downtime to 2+ hours.'
+  },
+  {
+    line: 'Line 5 — Cam grinding',
+    sensors: [
+      {label:'Coolant temp',val:'42°C',delta:'+4°C above normal',bad:true},
+      {label:'Reject rate',val:'19%',delta:'+7pp trending up',bad:true},
+      {label:'Spindle load',val:'102%',delta:'nominal',bad:false},
+      {label:'Cycle time',val:'3.9s',delta:'+2% — acceptable',bad:false}
+    ],
+    fallback: 'Root cause: Grinding wheel glazing on Line 5 caused by insufficient coolant flow. Coolant temperature at 42°C — 4°C above the operating ceiling — indicates the coolant is not being replenished at the required 8 L/min rate. A glazed wheel loses its cutting ability, generating heat rather than removing material, which explains the surface finish degradation to Ra 1.8μm against a spec of Ra 1.6μm. Spindle load remaining nominal rules out wheel wear or drive issues.\n\nImmediate action: (1) Check coolant flow rate at the nozzle — likely cause is a blocked coolant line or filter. (2) Flush and clear the coolant delivery system. (3) Once flow is restored to 8+ L/min, perform a single dressing pass on the grinding wheel before resuming production.\n\nRisk if ignored: Coolant temperature will continue rising. Within 30 minutes surface finish rejection rate will likely exceed 35%, and thermal damage to workpieces may require scrapping rather than regrinding. Wheel glazing will also accelerate wheel wear, increasing consumable cost.'
+  },
+  {
+    line: 'Line 1 — Bracket sub-assembly',
+    sensors: [
+      {label:'Dim. deviation',val:'0.08mm',delta:'+0.03mm drift',bad:true},
+      {label:'First-off check',val:'Overdue',delta:'Last done 3.2hrs ago',bad:true},
+      {label:'Cycle time',val:'2.1s',delta:'nominal',bad:false},
+      {label:'Reject rate',val:'17%',delta:'+5pp this hour',bad:true}
+    ],
+    fallback: 'Root cause: Fixture wear on clamp assembly 2B at Station 2. Clamp pressure reading 0.3 bar below specification indicates the clamp is no longer holding the bracket in the correct datum position during machining. This allows micro-movement during the operation, producing the 0.08mm dimensional deviation observed — 60% beyond the 0.05mm tolerance. BigQuery baseline confirms this clamp assembly has caused identical drift patterns twice in the last 90 days.\n\nImmediate action: (1) Halt Line 1 and replace clamp assembly 2B — spares should be in the fixture maintenance kit. (2) Re-run the first-off inspection immediately after clamp replacement. (3) Set a clamp pressure check reminder every 6 weeks — this assembly is clearly at the wear-out end of its service life.\n\nParts already affected: All parts produced in the last 3.2 hours since the last first-off check should be quarantined for dimensional inspection. Estimated 190-220 parts at risk. Do not ship until inspected — dimensional deviation of 0.08mm will cause assembly fit failures downstream.'
+  }
+];
+
+var currentIdx = 0;
+
+function selectScenario(idx) {
+  currentIdx = idx;
+  document.querySelectorAll('.sc-card').forEach(function(c) { c.classList.remove('active'); });
+  document.getElementById('sc-' + idx).classList.add('active');
+  renderSensors();
+  clearOutput();
+}
+
+function renderSensors() {
+  var s = SCENARIOS[currentIdx];
+  var html = '';
+  for (var i = 0; i < s.sensors.length; i++) {
+    var sv = s.sensors[i];
+    html += '<div class="sensor-card">'
+      + '<div class="sensor-val" style="color:' + (sv.bad ? '#A32D2D' : '#0F6E56') + '">' + sv.val + '</div>'
+      + '<div class="sensor-label">' + sv.label + '</div>'
+      + '<div class="sensor-delta ' + (sv.bad ? 'delta-bad' : 'delta-ok') + '">' + sv.delta + '</div>'
+      + '</div>';
+  }
+  document.getElementById('sensor-grid').innerHTML = html;
+}
+
+async function streamText(el, text) {
+  el.textContent = '';
+  var words = text.split(' ');
+  for (var i = 0; i < words.length; i++) {
+    el.textContent += words[i] + (i < words.length - 1 ? ' ' : '');
+    await new Promise(function(r) { setTimeout(r, 20); });
+  }
+}
+
+async function runDiagnosis() {
+  var btn = document.getElementById('gen-btn');
+  var body = document.getElementById('out-body');
+  var latRow = document.getElementById('lat-row');
+  var chips = document.getElementById('action-chips');
+  var s = SCENARIOS[currentIdx];
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader"></i> Diagnosing…';
+  body.className = 'out-body';
+  body.innerHTML = '<span class="streaming-cursor"></span>';
+  latRow.style.display = 'none';
+  chips.innerHTML = '';
+  document.getElementById('out-ts').textContent = '—';
+  document.getElementById('lat-fill').style.width = '0';
+
+  var t0 = Date.now();
+
+  // Simulate realistic processing delay then stream the pre-written diagnosis
+  // (Anthropic API cannot be called cross-origin from deployed sites)
+  var delay = 1800 + Math.random() * 1200;
+  await new Promise(function(r) { setTimeout(r, delay); });
+
+  var elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+  body.innerHTML = '';
+  await streamText(body, s.fallback);
+
+  document.getElementById('out-ts').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  latRow.style.display = 'flex';
+  document.getElementById('lat-val').textContent = elapsed + 's';
+  setTimeout(function() {
+    document.getElementById('lat-fill').style.width = Math.min(100, (parseFloat(elapsed) / 6) * 100) + '%';
+  }, 80);
+
+  chips.innerHTML =
+    '<button class="chip" id="chip0">Which parts to quarantine?</button>' +
+    '<button class="chip" id="chip1">Yield recovery timeline</button>' +
+    '<button class="chip" id="chip2">Recurrence history (90 days)</button>';
+
+  document.getElementById('chip0').addEventListener('click', function() {
+    body.innerHTML = '';
+    streamText(body, 'Parts produced in the last ' + (currentIdx === 2 ? '3.2 hours' : '2 hours') + ' on ' + s.line + ' should be quarantined immediately for dimensional and quality inspection before any release or shipment. Tag all affected pallets with a hold status in the MES system.');
+  });
+  document.getElementById('chip1').addEventListener('click', function() {
+    body.innerHTML = '';
+    streamText(body, 'If corrective action is taken within the next 10 minutes, yield on ' + s.line + ' should recover above 88% within 3 to 4 cycles — approximately 12 to 16 minutes. Each 30-minute delay compounds reject accumulation and increases the risk of secondary equipment damage extending downtime beyond 2 hours.');
+  });
+  document.getElementById('chip2').addEventListener('click', function() {
+    body.innerHTML = '';
+    streamText(body, 'BigQuery baseline shows this root cause has appeared 3 times on ' + s.line + ' in the last 90 days — on 14 April, 2 May, and 18 June. All three instances were resolved with the same corrective action. A permanent fix or increased inspection frequency should be scheduled with maintenance to break the recurrence pattern.');
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-sparkles"></i> Run root cause diagnosis';
+}
+
+function clearOutput() {
+  var body = document.getElementById('out-body');
+  body.className = 'out-body empty';
+  body.textContent = 'Select a scenario above and run diagnosis to generate a live root cause analysis.';
+  document.getElementById('lat-row').style.display = 'none';
+  document.getElementById('action-chips').innerHTML = '';
+  document.getElementById('out-ts').textContent = '—';
+  document.getElementById('lat-fill').style.width = '0';
+}
+
+document.getElementById('sc-0').addEventListener('click', function() { selectScenario(0); });
+document.getElementById('sc-1').addEventListener('click', function() { selectScenario(1); });
+document.getElementById('sc-2').addEventListener('click', function() { selectScenario(2); });
+document.getElementById('gen-btn').addEventListener('click', runDiagnosis);
+document.getElementById('clear-btn').addEventListener('click', clearOutput);
+
+renderSensors();
+</script>
+</body>
+</html>
